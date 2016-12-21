@@ -1,1 +1,9 @@
+# SPLyse's workspace
 .workspace
+
+# compiled python files
+*.pyc
+
+# symlinks
+ConstraintSolver
+Java2Boogie
