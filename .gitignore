@@ -1,9 +1,12 @@
-# SPLyse's workspace
-.workspace
-
-# compiled python files
+# python byte code
 *.pyc
+
+# working directory
+.workspace
 
 # symlinks
 ConstraintSolver
 Java2Boogie
+
+# logs
+SPLyse.log
