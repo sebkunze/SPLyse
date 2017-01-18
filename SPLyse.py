@@ -14,7 +14,7 @@ symbooglix_output_directory = 'symbooglix-out'
 constraint_solver_source_file      = 'Symbooglix.TerminatedWithoutError.yml'
 constraint_solver_output_directory = 'solver-out'
 
-terminated_state_header = '---\n!!python/object:core.symbooglix.TerminatedSymbooglixState\n'
+terminated_state_header = '---\n!!python/object:core.object.data.symbooglix.TerminatedSymbooglixState\n'
 
 
 def main():

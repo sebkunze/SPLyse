@@ -4,6 +4,9 @@
 # working directory
 .workspace
 
+# debug information
+debug/
+
 # symlinks
 ConstraintSolver
 Java2Boogie
