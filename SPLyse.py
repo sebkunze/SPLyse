@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-import os, sys
+import os
+import sys
+from subprocess import call
 
-from subprocess     import call, check_call
-from core.logger    import info
+from core.utils import logger
 
 workspace  = os.path.join(os.getcwd(),'.workspace')
 
@@ -16,7 +17,6 @@ constraint_solver_output_directory = 'solver-out'
 
 terminated_state_header = '---\n!!python/object:core.object.data.symbooglix.TerminatedSymbooglixState\n'
 
-
 def main():
     if len(sys.argv) < 3:
         print "Please specify software product line's source folder and its entry point to be tested!"
@@ -26,17 +26,27 @@ def main():
     base_path   = sys.argv[1]
     entry_point = sys.argv[2]
 
+    print 'Analysing software product line in ' + str(base_path)
+
     # create subdirectory for workspace and it clean up if existing
     set_up_workspace()
+
+    print 'TRANSLATING SOURCE FILES.'
 
     # translate JAVA source files to BOOGIE files
     translate_source_files(base_path)
 
+    print 'EXECUTING CODE SYMBOLICALLY.'
+
     # generate terminated states of BOOGIE files using SYMBOOGLIX
     generate_terminated_states(workspace, entry_point)
 
+    print 'ANALYSING TERMINATED STATES.'
+
     # analyse terminated states using Constrain Solver
     analyse_terminated_states(workspace)
+
+    print 'DONE'
 
 
 def set_up_workspace():
@@ -59,7 +69,7 @@ def translate_source_files(base_path):
         if folder == '.DS_Store':
             continue
 
-        info('Processing all source files within folder %s', folder)
+        logger.info('Processing all source files within folder %s', folder)
 
         # browse all source files of each software product line variant.
         for root, dirs, files in os.walk(os.path.join(base_path, folder)):
@@ -67,7 +77,7 @@ def translate_source_files(base_path):
             source_files = [f for f in files if '.java' in f]
 
             for f in source_files:
-                info('Start translating source file %s', f)
+                logger.info('Start translating source file %s', f)
 
                 # specify source and target files for Java2Boogie.
                 source = os.path.join(root, f)
@@ -80,7 +90,7 @@ def translate_source_files(base_path):
                 # call Java2Boogie parser with respective options.
                 call(['Java2Boogie', '-s', source, '-t', target])
 
-                info('Done translating source file %s', f)
+                logger.info('Done translating source file %s', f)
 
 def generate_terminated_states(source_files, entry_point): # TODO: Do some refactoring!
     # browse all translated source files of the software product line variant.
@@ -90,7 +100,7 @@ def generate_terminated_states(source_files, entry_point): # TODO: Do some refac
             continue
 
         # STEP 1: Merging all source files.
-        info('Start merging all translated source files in folder %s to symbooglix executeable', folder)
+        logger.info('Start merging all translated source files in folder %s to symbooglix executeable', folder)
         for root, dirs, files in os.walk(os.path.join(workspace, folder)):
             # write prefix for boogie heap abstraction.
             heap   = open(os.path.join(os.getcwd(), 'Java2Boogie', 'prefix', 'heap.bpl'))
@@ -112,10 +122,10 @@ def generate_terminated_states(source_files, entry_point): # TODO: Do some refac
 
             # close boogie target file.
             target.close()
-        info('Done merging all translated source files in folder %s to symbooglix executeable', folder)
+        logger.info('Done merging all translated source files in folder %s to symbooglix executeable', folder)
 
         # STEP 2: Executing SYMBOOGLIX.
-        info('Start analysing variant in folder %s', folder)
+        logger.info('Start analysing variant in folder %s', folder)
         for root, dirs, files in os.walk(os.path.join(workspace, folder)):
             for f in files:
                 if f == boogie_source_file:
@@ -124,7 +134,7 @@ def generate_terminated_states(source_files, entry_point): # TODO: Do some refac
                     # build command for SYMBOOGLIX
                     cmd = ['mono ' + symbooglix_home_environment + '/Debug/sbx.exe ' + source,
                            '-e ' + entry_point,
-                           ' --esi-show-constraints 1',
+                           '--esi-show-constraints 1',
                            '--esi-show-vars 1',
                            '--write-smt2 0',
                            '--max-depth 1000',
@@ -135,10 +145,10 @@ def generate_terminated_states(source_files, entry_point): # TODO: Do some refac
 
                     # call SYMBOOGLIX
                     call(to_command(cmd), shell=True)
-        info('Done analyzing variant in folder %s', folder)
+        logger.info('Done analyzing variant in folder %s', folder)
 
         # STEP 3: Combining all terminated states to one single file.
-        info("Start combining terminated symbooglix states in folder %s", folder)
+        logger.info("Start combining terminated symbooglix states in folder %s", folder)
         terminated_states = os.path.join(workspace, folder, symbooglix_output_directory)
         for root, dirs, files in os.walk(terminated_states):
             # open terminated states file.
@@ -157,9 +167,11 @@ def generate_terminated_states(source_files, entry_point): # TODO: Do some refac
 
             # close terminated states file.
             target.close()
-        info("Done combining terminated symbooglix states in folder %s", folder)
+        logger.info("Done combining terminated symbooglix states in folder %s", folder)
 
 def analyse_terminated_states(source_files):
+    counter = 1;
+    number = len(os.listdir(source_files)) * (len(os.listdir(source_files)) - 1)
     # browse all terminated states of the software product line variant.
     for folder_a in os.listdir(source_files):
         # create subdirectory.
@@ -173,15 +185,18 @@ def analyse_terminated_states(source_files):
             terminated_states_file_b = os.path.join(source_files, folder_b, symbooglix_output_directory, 'terminated_states', constraint_solver_source_file)
 
             # specifying input files.
-            input_files  = terminated_states_file_a + ',' + terminated_states_file_b
+            input_files = terminated_states_file_a + ' ' + terminated_states_file_b
 
             # specifying output files.
-            output_files = os.path.join(workspace, folder_a, constraint_solver_output_directory, folder_a + '#' + folder_b + '.txt')
+            output_files = os.path.join(workspace, folder_a, constraint_solver_output_directory, folder_a + '#' + folder_b + '.yml')
+
+            print "- checking possible product combination " + str(counter) + " of " + str(number)
+            counter+=1
 
             # build command for CONSTRAINT_SOLVER.
             cmd = ['ConstraintSolver.py',
-                   '--input-files=' + input_files,
-                   '--output-file=' + output_files]
+                   input_files,
+                   '--target ' + output_files]
 
             # call CONSTRAINT_SOLVER.
             call(to_command(cmd), shell=True)
