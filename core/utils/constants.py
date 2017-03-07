@@ -1,6 +1,6 @@
 import os
 
-workspace  = os.path.join(os.getcwd(),'.workspace')
+workspace  = os.path.join(os.getcwd(),'.SPLyse')
 
 symbooglix_output_directory = 'symbooglix-out'
 constraint_solver_output_directory = 'solver-out'

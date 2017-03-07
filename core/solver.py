@@ -7,7 +7,7 @@ from core.utils  import constants, logger, misc
 
 def analyse():
     counter = 1;
-    number = 1 if len(os.listdir(constants.workspace)) is 1 else len(os.listdir(constants.workspace)) * (len(os.listdir(constants.workspace)) - 1)
+    number = len(os.listdir(constants.workspace))
 
     # browse all terminated states of the software product line variant.
     for folder in os.listdir(constants.workspace):
@@ -34,7 +34,7 @@ def analyse():
         call(misc.to_command(cmd), shell=True)
 
 
-def guide():
+def compare():
     if len(os.listdir(constants.workspace)) == 1:
         print "- too few variants for comparison."
         return
@@ -57,7 +57,7 @@ def guide():
             input_files = terminated_states_file_a + ' ' + terminated_states_file_b
 
             # specifying output files.
-            output_files = os.path.join(constants.workspace, folder_a, constants.constraint_solver_output_directory, folder_a + '#' + folder_b + '.yml')
+            output_files = os.path.join(constants.workspace, folder_a, constants.constraint_solver_output_directory, 'from_' + folder_b + '_to_' + folder_a + '.yml')
 
             print "- comparing variant combination " + str(counter) + " of " + str(number)
             counter+=1
@@ -70,3 +70,7 @@ def guide():
 
             # call CONSTRAINT_SOLVER.
             call(misc.to_command(cmd), shell=True)
+
+def explore():
+    print 'TEST!'
+    return 'undefined'

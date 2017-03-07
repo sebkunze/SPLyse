@@ -51,6 +51,30 @@ def search_sources_files(directory, variant):
 
             break
 
+    logger.info("Collecting source files%s.", '')
+
+    source_files = []
+    for source in sources:
+        for root, dirs, files in os.walk(source, topdown=False):
+            source_files += [os.path.join(root, f) for f in files if '.java' in f]
+
+    logger.info("Collected source files %s.", source_files)
+
+    return source_files
+
+
+def look_up_source_files(directory, variants):
+    sources = {}
+
+    # searching each variants source files.
+    for variant in variants:
+        sources[variant] = search_sources_files(directory, variant)
+
+    return sources
+
+def search_test_files(directory, variant):
+    sources = []
+
     logger.info("Searching test folder for variant %s.", variant)
 
     folder = search_test_folder(directory)
@@ -76,15 +100,14 @@ def search_sources_files(directory, variant):
 
     return source_files
 
+def look_up_test_files(directory, variants):
+    tests = {}
 
-def look_up_sources(directory, variants):
-    sources = {}
-
-    # searching each variants sources.
+    # searching each variants test files.
     for variant in variants:
-        sources[variant] = search_sources_files(directory, variant)
+        tests[variant] = search_test_files(directory, variant)
 
-    return sources
+    return tests
 
 def to_command(cmd):
     return ' '.join(cmd)

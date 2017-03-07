@@ -10,6 +10,8 @@ boogie_file_extension = 'exec.bpl'
 symbooglix_home_environment = os.environ['SYMBOOGLIX_HOME']
 symbooglix_output_directory = 'symbooglix-out'
 
+java2boogie_home_environment = os.environ['JAVA2BOOGIE_HOME']
+
 constraint_solver_source_file      = 'Symbooglix.TerminatedWithoutError.yml'
 constraint_solver_output_directory = 'solver-out'
 
@@ -27,12 +29,18 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
         logger.info('Start merging all translated source files in folder %s to symbooglix executeable', folder)
         for root, dirs, files in os.walk(os.path.join(constants.workspace, folder)):
             # write prefix for boogie heap abstraction.
-            heap   = open(os.path.join(os.getcwd(), 'Java2Boogie', 'prefix', 'heap.bpl'))
+            heap  = open(os.path.join(java2boogie_home_environment, 'prefix', 'heap.bpl'))
+            stack = open(os.path.join(java2boogie_home_environment, 'prefix', 'stack.bpl'))
+            test  = open(os.path.join(java2boogie_home_environment, 'prefix', 'test.bpl'))
+            code  = open(os.path.join(java2boogie_home_environment, 'prefix', 'code.bpl'))
 
             # open boogie target file.
             target = open(os.path.join(root, boogie_file_extension), 'a')
 
             target.write(heap.read())
+            target.write(stack.read())
+            target.write(test.read())
+            target.write(code.read())
 
             for f in [f for f in files if not f == boogie_file_extension]:
                 # open boogie source file.
@@ -55,6 +63,8 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
                 if f == boogie_file_extension:
                     source = os.path.join(root, f)
 
+                    # TODO: Parse output directory better!
+
                     # build command for SYMBOOGLIX
                     cmd = ['mono ' + symbooglix_home_environment + '/Debug/sbx.exe ' + source,
                            '-e ' + entry_point,
@@ -62,7 +72,7 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
                            '--esi-show-vars 1',
                            '--write-smt2 0',
                            '--max-depth 1000',
-                           '--output-dir .workspace/' + folder + '/' + symbooglix_output_directory,
+                           '--output-dir ' + str(constants.workspace) + '/' + folder + '/' + symbooglix_output_directory,
                            '--file-logging 1',
                            '--log-terminated-state-info 1',
                            '--log-non-terminated-state-info 0']
