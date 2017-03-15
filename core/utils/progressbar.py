@@ -11,6 +11,7 @@ class ProgressBar:
     def setup(self, number):
         self.increment = 1 if number >= self.width else self.width / number
         self.step      = number / self.width if number >= self.width else self.width / number
+        # self.width     = self.step * number
 
     def prefix(self):
         print '[          ]',

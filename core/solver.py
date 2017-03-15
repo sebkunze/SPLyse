@@ -70,7 +70,7 @@ def compare():
         return
 
     size \
-        = number_of_variant_directories * (number_of_variant_directories - 1)
+        = len(os.listdir(constants.workspace))
 
     # setup progressbar's size.
     bar.setup(size)
@@ -135,8 +135,8 @@ def compare():
             # store result's file path.
             destinations[to_be_tested_program_folder].append(output_files)
 
-            # print progress.
-            bar.progress()
+        # print progress.
+        bar.progress()
 
     # print done.
     bar.suffix()

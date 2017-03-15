@@ -10,7 +10,7 @@ bar = ProgressBar()
 
 
 def adjust_test_cases(testinfos, testcases): # TODO: Use one dict instead!
-    size = len(os.listdir(constants.workspace))
+    size = len(testinfos.items())
 
     # setup progressbar's size.
     bar.setup(size)
@@ -50,8 +50,8 @@ def adjust_test_cases(testinfos, testcases): # TODO: Use one dict instead!
 
                     call(misc.to_command(cmd), shell=True)
 
-                # print progress.
-                bar.progress()
+        # print progress.
+        bar.progress()
 
     # print done.
     bar.suffix()
