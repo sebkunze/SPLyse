@@ -1,28 +1,49 @@
-import os
+import os, sys
 
-from subprocess import call
+from collections            import defaultdict
+from subprocess             import call
 
-from core.utils  import constants, logger, misc
+from core.utils             import constants, logger, misc
+from core.utils.progressbar import ProgressBar
+
+
+bar = ProgressBar()
 
 
 def analyse():
-    counter = 1;
-    number = len(os.listdir(constants.workspace))
+    size = len(os.listdir(constants.workspace))
+
+    # setup progressbar's size.
+    bar.setup(size)
+
+    # print skeleton.
+    bar.prefix()
 
     # browse all terminated states of the software product line variant.
-    for folder in os.listdir(constants.workspace):
+    for to_be_analysed_program_folder in os.listdir(constants.workspace):
+        subdirectory \
+            = os.path.join( constants.workspace
+                          , to_be_analysed_program_folder
+                          , constants.constraint_solver_output_directory)
+
         # create subdirectory.
-        if not os.path.exists(os.path.join(constants.workspace, folder, constants.constraint_solver_output_directory)):
-            os.makedirs(os.path.join(constants.workspace, folder, constants.constraint_solver_output_directory), 0755)
+        if not os.path.exists(subdirectory):
+            os.makedirs(subdirectory, 0755)
 
         # specifying output file.
-        input_files = os.path.join(constants.workspace, folder, constants.symbooglix_output_directory, 'terminated_states', constants.constraint_solver_source_file)
+        input_files \
+            = os.path.join( constants.workspace
+                          , to_be_analysed_program_folder
+                          , constants.symbooglix_output_directory
+                          , 'terminated_states'
+                          , constants.constraint_solver_source_file)
 
         # specifying output file.
-        output_files = os.path.join(constants.workspace, folder, constants.constraint_solver_output_directory, folder + '.yml')
-
-        print "- analysing variant " + str(counter) + " of " + str(number)
-        counter+=1
+        output_files \
+            = os.path.join( constants.workspace
+                          , to_be_analysed_program_folder
+                          , constants.constraint_solver_output_directory
+                          , constants.analysed_file_name)
 
         # build command for CONSTRAINT_SOLVER.
         cmd = ['ConstraintSolver.py',
@@ -33,44 +54,95 @@ def analyse():
         # call CONSTRAINT_SOLVER.
         call(misc.to_command(cmd), shell=True)
 
+        # print progress.
+        bar.progress()
+
+    # print done.
+    bar.suffix()
+
 
 def compare():
-    if len(os.listdir(constants.workspace)) == 1:
-        print "- too few variants for comparison."
+    number_of_variant_directories = len(os.listdir(constants.workspace))
+
+    if number_of_variant_directories == 1:
+        print ""
+        print "> ERROR: TOO FEW VARIANTS FOR COMPARISON."
         return
 
-    counter = 1;
-    number = len(os.listdir(constants.workspace)) * (len(os.listdir(constants.workspace)) - 1)
+    size \
+        = number_of_variant_directories * (number_of_variant_directories - 1)
+
+    # setup progressbar's size.
+    bar.setup(size)
+
+    # print skeleton.
+    bar.prefix()
+
+    # declare dictionary storing results' file path.
+    destinations = defaultdict(list)
+
     # browse all terminated states of the software product line variant.
-    for folder_a in os.listdir(constants.workspace):
+    for to_be_tested_program_folder in os.listdir(constants.workspace):
+        subdirectory \
+            = os.path.join( constants.workspace
+                          , to_be_tested_program_folder
+                          , constants.constraint_solver_output_directory)
+
         # create subdirectory.
-        if not os.path.exists(os.path.join(constants.workspace, folder_a, constants.constraint_solver_output_directory)):
-            os.makedirs(os.path.join(constants.workspace, folder_a, constants.constraint_solver_output_directory), 0755)
+        if not os.path.exists(subdirectory):
+            os.makedirs(subdirectory, 0755)
 
         # specify terminated states of software product line variant A.
-        terminated_states_file_a = os.path.join(constants.workspace, folder_a, constants.symbooglix_output_directory, 'terminated_states', constants.constraint_solver_source_file)
-        for folder_b in [folder for folder in os.listdir(constants.workspace) if not folder == folder_a]:
+        terminated_states_file_a \
+            = os.path.join( constants.workspace
+                          , to_be_tested_program_folder
+                          , constants.symbooglix_output_directory
+                          , constants.symbooglix_terminated_states_directory
+                          , constants.constraint_solver_source_file)
+
+        # collect folders of already tested programs.
+        already_tested_program_folders \
+            = [folder for folder in os.listdir(constants.workspace) if not folder == to_be_tested_program_folder]
+
+        for already_tested_program_folder in already_tested_program_folders:
             # specify terminated states of software product line variant B.
-            terminated_states_file_b = os.path.join(constants.workspace, folder_b, constants.symbooglix_output_directory, 'terminated_states', constants.constraint_solver_source_file)
+            terminated_states_file_b \
+                = os.path.join( constants.workspace
+                              , already_tested_program_folder
+                              , constants.symbooglix_output_directory
+                              , constants.symbooglix_terminated_states_directory
+                              , constants.constraint_solver_source_file)
 
             # specifying input files.
             input_files = terminated_states_file_a + ' ' + terminated_states_file_b
 
             # specifying output files.
-            output_files = os.path.join(constants.workspace, folder_a, constants.constraint_solver_output_directory, 'from_' + folder_b + '_to_' + folder_a + '.yml')
-
-            print "- comparing variant combination " + str(counter) + " of " + str(number)
-            counter+=1
+            output_files \
+                = os.path.join( constants.workspace
+                              , to_be_tested_program_folder
+                              , constants.constraint_solver_output_directory
+                              , already_tested_program_folder + '.yml')
 
             # build command for CONSTRAINT_SOLVER.
-            cmd = ['ConstraintSolver.py',
-                   input_files,
-                   '--compare-states',
-                   '--target ' + output_files]
+            cmd = [ 'ConstraintSolver.py'
+                  , input_files
+                  , '--compare-states'
+                  , '--target ' + output_files]
 
             # call CONSTRAINT_SOLVER.
             call(misc.to_command(cmd), shell=True)
 
+            # store result's file path.
+            destinations[to_be_tested_program_folder].append(output_files)
+
+            # print progress.
+            bar.progress()
+
+    # print done.
+    bar.suffix()
+
+    return destinations
+
+
 def explore():
-    print 'TEST!'
     return 'undefined'

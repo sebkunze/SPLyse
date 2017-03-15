@@ -1,11 +1,23 @@
-import os
+import os, sys
 
-from subprocess import call
+from subprocess             import call
 
-from core.utils import constants, logger
+from core.utils             import constants, logger
+from core.utils.progressbar import ProgressBar
+
+
+bar = ProgressBar()
 
 
 def translate_source_files(sources):
+    size = len(sources.items())
+
+    # setup progressbar's size.
+    bar.setup(size)
+
+    # print skeleton.
+    bar.prefix()
+
     for variant, source_files in sources.items():
         logger.info('Translating files for variant %s', variant)
 
@@ -26,3 +38,9 @@ def translate_source_files(sources):
             call(['Java2Boogie', '-s', source_file, '-t', target_file])
 
             logger.info('- To   target file %s', target_file)
+
+        # print progress.
+        bar.progress()
+
+    # print done.
+    bar.suffix()
