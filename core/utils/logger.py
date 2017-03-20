@@ -1,6 +1,14 @@
+import os
+
 import logging
 
+from core.utils import constants
+
 filename = 'SPLyse.log'
+# filename = os.path.join(constants.workspace, "SPLYse.log")
+
+def error(msg, args = []):
+    log.error(msg, args)
 
 def info(msg, args = []):
     log.info(msg, args)

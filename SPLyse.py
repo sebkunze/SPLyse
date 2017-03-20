@@ -69,7 +69,6 @@ def main():
         # remove all files and folders in the solver subdirectory.
         misc.clean_workspace(constants.workspace)
 
-
     if not options.skip_translation:
         print 'PARSING SOURCE FILES.\t\t',
 
@@ -80,7 +79,9 @@ def main():
 
         # generate terminated states of BOOGIE files using SYMBOOGLIX
         runner.generate_terminated_states(options.method)
-
+    else:
+        # TODO: Check if all required variants are translated.
+        s = 'undefined'
 
     print 'ANALYSING TERMINATED STATES.\t',
 
@@ -93,7 +94,7 @@ def main():
             solver.compare()
 
         cases =\
-            misc.look_up_test_files(options.directory, options.variants) # TODO: Rename to test cases!
+            misc.look_up_test_files(options.directory, options.variants) # TODO: Rename to test sources!
 
         print "ADJUSTING TEST CASES.\t\t",
 

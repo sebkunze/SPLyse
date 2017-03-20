@@ -14,7 +14,7 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
     bar.setup(size)
 
     # print skeleton.
-    bar.prefix()
+    bar.bar()
 
     # browse all translated source files of the software product line variant.
     for folder in os.listdir(constants.workspace):
@@ -111,4 +111,4 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
         bar.progress()
 
     # print done.
-    bar.suffix()
+    bar.done()

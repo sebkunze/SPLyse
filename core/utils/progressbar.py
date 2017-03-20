@@ -13,7 +13,8 @@ class ProgressBar:
         self.step      = number / self.width if number >= self.width else self.width / number
         # self.width     = self.step * number
 
-    def prefix(self):
+    # TODO: Change name, e.g., print skeleton.
+    def bar(self):
         print '[          ]',
         print '\b' * (self.width + 2),
         sys.stdout.flush()
@@ -25,5 +26,13 @@ class ProgressBar:
                 print '\b.',
                 sys.stdout.flush()
 
-    def suffix(self):
+    # TODO: Needs to be smarter!
+    def done(self):
         print '\b] DONE!'
+
+    def error(self):
+        for _ in range(self.width - self.counter):
+            print '\b.',
+            sys.stdout.flush()
+            self.counter += 1
+        print '\b] ERROR!'

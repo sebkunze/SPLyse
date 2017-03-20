@@ -16,7 +16,7 @@ def adjust_test_cases(testinfos, testcases): # TODO: Use one dict instead!
     bar.setup(size)
 
     # print skeleton.
-    bar.prefix()
+    bar.bar()
 
     for to_be_tested, infos in testinfos.items():
 
@@ -54,4 +54,4 @@ def adjust_test_cases(testinfos, testcases): # TODO: Use one dict instead!
         bar.progress()
 
     # print done.
-    bar.suffix()
+    bar.done()
