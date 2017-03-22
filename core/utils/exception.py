@@ -1,0 +1,2 @@
+class SPLyseException(Exception):
+    pass

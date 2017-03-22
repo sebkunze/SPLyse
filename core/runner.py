@@ -22,38 +22,7 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
         if folder == '.DS_Store':
             continue
 
-        # STEP 1: Merging all source files.
-        logger.info('Start merging all translated source files in folder %s to symbooglix executeable', folder)
-        for root, dirs, files in os.walk(os.path.join(constants.workspace, folder)):
-            # write prefix for boogie heap abstraction.
-            heap  = open(os.path.join(constants.java2boogie_home_environment, 'prefix', 'heap.bpl'))
-            stack = open(os.path.join(constants.java2boogie_home_environment, 'prefix', 'stack.bpl'))
-            test  = open(os.path.join(constants.java2boogie_home_environment, 'prefix', 'test.bpl'))
-            code  = open(os.path.join(constants.java2boogie_home_environment, 'prefix', 'code.bpl'))
-
-            # open boogie target file.
-            target = open(os.path.join(root, constants.translated_file_name), 'a')
-
-            target.write(heap.read())
-            target.write(stack.read())
-            target.write(test.read())
-            target.write(code.read())
-
-            for f in [f for f in files if not f == constants.translated_file_name]:
-                # open boogie source file.
-                source = open(os.path.join(root, f), 'r')
-
-                # append boogie source file to target file.
-                target.write(source.read())
-
-                # close boogie source file.
-                source.close()
-
-            # close boogie target file.
-            target.close()
-        logger.info('Done merging all translated source files in folder %s to symbooglix executeable', folder)
-
-        # STEP 2: Executing SYMBOOGLIX.
+        # STEP 1: Executing SYMBOOGLIX.
         logger.info('Start analysing variant in folder %s', folder)
         for root, dirs, files in os.walk(os.path.join(constants.workspace, folder)):
             for f in files:
@@ -79,7 +48,7 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
                     call(misc.to_command(cmd), shell=True)
         logger.info('Done analyzing variant in folder %s', folder)
 
-        # STEP 3: Combining all terminated states to one single file.
+        # STEP 2: Combining all terminated states to one single file.
         logger.info("Start combining terminated symbooglix states in folder %s", folder)
 
         terminated_states \

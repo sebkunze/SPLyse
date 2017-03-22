@@ -29,7 +29,7 @@ OPTIMISER \
     = "JavaTestModifier"
 
 PARSER \
-    = "Java2Boogie"
+    = "Java2Boogie.py"
 
 RUNNER \
     = 'mono ' + symbooglix_home_environment + '/Debug/sbx.exe '
