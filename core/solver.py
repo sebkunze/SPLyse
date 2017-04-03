@@ -138,7 +138,7 @@ def compare():
             # print progress.
             bar.progress()
 
-    except CalledProcessError as e: # catch *all* exceptions
+    except CalledProcessError as e:
         bar.error()
         print e.output
     else:

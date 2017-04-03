@@ -1,8 +1,9 @@
-import os, sys
+import os
 
-from subprocess             import call
+from subprocess             import check_output, call, CalledProcessError, STDOUT
 
 from core.utils             import constants, logger, misc
+from core.utils.exception   import SPLyseException
 from core.utils.progressbar import ProgressBar
 
 bar = ProgressBar()
@@ -16,6 +17,7 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
     # print skeleton.
     bar.bar()
 
+    # try:
     # browse all translated source files of the software product line variant.
     for folder in os.listdir(constants.workspace):
         # ignore MacOS' custom attributes of the analysed folder.
@@ -29,23 +31,37 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
                 if f == constants.translated_file_name:
                     source = os.path.join(root, f)
 
-                    # TODO: Parse output directory better!
+                    logger.debug("> Executing source file: %s", source)
+
+                    target = str(constants.workspace) + '/' + folder + '/' + constants.symbooglix_output_directory
 
                     # build command for SYMBOOGLIX
                     cmd = [ constants.RUNNER
                           , source
                           , '-e ' + entry_point
+                          , '--check-entry-requires 1'
+                          , '--check-entry-axioms 1'
                           , '--esi-show-constraints 1'
                           , '--esi-show-vars 1'
                           , '--write-smt2 0'
                           , '--max-depth 1000'
-                          , '--output-dir ' + str(constants.workspace) + '/' + folder + '/' + constants.symbooglix_output_directory
+                          , '--output-dir ' + target
                           , '--file-logging 1'
                           , '--log-terminated-state-info 1'
                           , '--log-non-terminated-state-info 0']
 
-                    # call SYMBOOGLIX
-                    call(misc.to_command(cmd), shell=True)
+                    try:
+                        # call SYMBOOGLIX
+                        check_output(misc.to_command(cmd), shell=True)
+
+                    except CalledProcessError as e:
+                         # FIXME: SYMBOOGLIX returns ERRORS_NO_TIMEOUT even if executed with a valid program.
+                        if e.returncode == 2:
+                            continue
+                        else:
+                            raise SPLyseException("SYMBOOGLIX failed.")
+
+
         logger.info('Done analyzing variant in folder %s', folder)
 
         # STEP 2: Combining all terminated states to one single file.
@@ -79,5 +95,6 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
         # print progress.
         bar.progress()
 
-    # print done.
-    bar.done()
+    # else:
+        # print done.
+        bar.done()
