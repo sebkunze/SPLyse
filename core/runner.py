@@ -95,6 +95,5 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
         # print progress.
         bar.progress()
 
-    # else:
-        # print done.
-        bar.done()
+    # print done.
+    bar.done()
