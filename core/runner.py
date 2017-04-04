@@ -1,11 +1,16 @@
 import os
+import logging
 
 from subprocess             import check_output, call, CalledProcessError, STDOUT
 
-from core.utils             import constants, logger, misc
+from core.utils             import constants, misc
 from core.utils.exception   import SPLyseException
 from core.utils.progressbar import ProgressBar
 
+# get logging instance.
+log = logging.getLogger('SPLyse')
+
+# get progress bar instance.
 bar = ProgressBar()
 
 def generate_terminated_states(entry_point): # TODO: Do some refactoring!
@@ -15,7 +20,7 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
     bar.setup(size)
 
     # print skeleton.
-    bar.bar()
+    bar.skeleton()
 
     # try:
     # browse all translated source files of the software product line variant.
@@ -25,13 +30,13 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
             continue
 
         # STEP 1: Executing SYMBOOGLIX.
-        logger.info('Start analysing variant in folder %s', folder)
+        log.info('Start analysing variant in folder %s', folder)
         for root, dirs, files in os.walk(os.path.join(constants.workspace, folder)):
             for f in files:
                 if f == constants.translated_file_name:
                     source = os.path.join(root, f)
 
-                    logger.debug("> Executing source file: %s", source)
+                    log.debug("> Executing source file: %s", source)
 
                     target = str(constants.workspace) + '/' + folder + '/' + constants.symbooglix_output_directory
 
@@ -62,10 +67,10 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
                             raise SPLyseException("SYMBOOGLIX failed.")
 
 
-        logger.info('Done analyzing variant in folder %s', folder)
+        log.info('Done analyzing variant in folder %s', folder)
 
         # STEP 2: Combining all terminated states to one single file.
-        logger.info("Start combining terminated symbooglix states in folder %s", folder)
+        log.info("Start combining terminated symbooglix states in folder %s", folder)
 
         terminated_states \
             = os.path.join( constants.workspace
@@ -90,7 +95,7 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
             # close terminated states file.
             target.close()
 
-        logger.info("Done combining terminated symbooglix states in folder %s", folder)
+        log.info("Done combining terminated symbooglix states in folder %s", folder)
 
         # print progress.
         bar.progress()

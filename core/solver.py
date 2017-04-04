@@ -1,14 +1,16 @@
-import os, sys
+import logging, os
 
 from collections            import defaultdict
 from subprocess             import call, check_call, check_output, CalledProcessError, STDOUT
 
-from core.utils             import constants, logger, misc
+from core.utils             import constants, misc
 from core.utils.progressbar import ProgressBar
 
+# get logging instance.
+log = logging.getLogger('SPLyse')
 
+# get progress bar instance.
 bar = ProgressBar()
-
 
 def analyse():
     size = len(os.listdir(constants.workspace))
@@ -17,7 +19,7 @@ def analyse():
     bar.setup(size)
 
     # print skeleton.
-    bar.bar()
+    bar.skeleton()
 
     # browse all terminated states of the software product line variant.
     for to_be_analysed_program_folder in os.listdir(constants.workspace):
@@ -77,11 +79,14 @@ def compare():
     bar.setup(number_of_variant_directories)
 
     # print skeleton.
-    bar.bar()
+    bar.skeleton()
 
     try:
         # browse all terminated states of the software product line variant.
         for to_be_tested_program_folder in os.listdir(constants.workspace):
+            if to_be_tested_program_folder == ".DS_Store":
+                continue
+
             subdirectory \
                 = os.path.join( constants.workspace
                               , to_be_tested_program_folder

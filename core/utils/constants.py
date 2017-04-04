@@ -12,6 +12,8 @@ workspace = os.path.join(os.getcwd(),'.SPLyse')
 #                PATH VARIABLES
 # -----------------------------------------------
 
+splyse_home_environment \
+    = os.environ['SPLYSE_HOME']
 
 java2boogie_home_environment \
     = os.environ['JAVA2BOOGIE_HOME']
@@ -62,9 +64,17 @@ constraint_solver_source_file \
 #                   INTERNAL
 # -----------------------------------------------
 
+log_file_name \
+    = "logging.yaml"
 
-analysed_file_name = "analysis.yml"
+log_file_path \
+    = os.path.join(splyse_home_environment, log_file_name)
 
-translated_file_name = "exec.bpl"
+analysed_file_name \
+    = "analysis.yml"
 
-terminated_state_header = '---\n!!python/object:core.object.data.symbooglix.TerminatedSymbooglixState\n'
+translated_file_name \
+    = "exec.bpl"
+
+terminated_state_header \
+    = '---\n!!python/object:core.object.data.symbooglix.TerminatedSymbooglixState\n'

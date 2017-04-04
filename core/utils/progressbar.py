@@ -14,7 +14,7 @@ class ProgressBar:
         # self.width     = self.step * number
 
     # TODO: Change name, e.g., print skeleton.
-    def bar(self):
+    def skeleton(self):
         print '[          ]',
         print '\b' * (self.width + 2),
         sys.stdout.flush()

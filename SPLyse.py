@@ -1,10 +1,15 @@
 #!/usr/bin/env python
-
 import os
+
+import logging
 
 from argparse    import ArgumentParser
 from core        import optimiser, parser, runner, solver
-from core.utils  import constants, misc
+from core.utils  import constants, logger, misc
+
+
+# setup logging mechanism.
+logger.setup(constants.log_file_path)
 
 
 def main():

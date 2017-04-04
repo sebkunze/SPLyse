@@ -1,9 +1,12 @@
 import os
+import logging
 
 from collections import defaultdict
 
-from core.utils  import constants, logger
+from core.utils  import constants
 
+# get logging instance.
+log = logging.getLogger('SPLyse')
 
 def set_up_workspace(directory):
     # create subdirectory.
@@ -12,16 +15,20 @@ def set_up_workspace(directory):
 
 
 def clean_workspace(directory):
-    for dir in os.listdir(directory):
+    for source_folder in os.listdir(directory):
+        # ignore MacOS' custom attributes of the workspace.
+        if source_folder == ".DS_Store":
+            continue
+
         subdir \
             = os.path.join( directory
-                          , dir
+                          , source_folder
                           , constants.constraint_solver_output_directory)
 
         clear_workspace(subdir)
 
-        map(lambda file: os.remove(os.path.join(constants.workspace, dir, file)),
-            [file for file in os.listdir(os.path.join(constants.workspace, dir)) if file.endswith('.yml')])
+        map(lambda source: os.remove(os.path.join(constants.workspace, source_folder, source)),
+            [source for source in os.listdir(os.path.join(constants.workspace, source_folder)) if source.endswith('.yml')])
 
 
 def clear_workspace(directory):
@@ -80,7 +87,7 @@ def look_up_sources(directory, variants, include_test_files):
 def search_sources_files(directory, variant):
     sources = []
 
-    logger.info("Searching source folder for variant %s.", variant)
+    log.info("Searching source folder for variant %s.", variant)
 
     folder = search_source_folder(directory)
     for root, dirs, _ in os.walk(folder, topdown=False):
@@ -89,37 +96,28 @@ def search_sources_files(directory, variant):
             source_folder \
                 = os.path.abspath(os.path.join(root, variant_folder[0]))
 
-            logger.info("Found source folder at %s.", source_folder)
+            log.info("Found source folder at %s.", source_folder)
 
             sources.append(source_folder)
 
             break
 
-    logger.info("Collecting source files%s.", '')
+    log.info("Collecting source files%s.", '')
 
     source_files = []
     for source in sources:
         for root, dirs, files in os.walk(source, topdown=False):
             source_files += [os.path.join(root, f) for f in files if '.java' in f]
 
-    logger.info("Collected source files %s.", source_files)
+    log.info("Collected source files %s.", source_files)
 
     return source_files
 
 
-# def look_up_source_files(directory, variants):
-#     sources = defaultdict(list)
-#
-#     # searching each variants source files.
-#     for variant in variants:
-#         sources[variant] += search_sources_files(directory, variant)
-#
-#     return sources
-
 def search_test_files(directory, variant):
     sources = []
 
-    logger.info("Searching test folder for variant %s.", variant)
+    log.info("Searching test folder for variant %s.", variant)
 
     folder = search_test_folder(directory)
     for root, dirs, _ in os.walk(folder, topdown=False):
@@ -128,20 +126,20 @@ def search_test_files(directory, variant):
             test_folder \
                 = os.path.abspath(os.path.join(root, variant_folder[0]))
 
-            logger.info("Found test folder at %s.", test_folder)
+            log.info("Found test folder at %s.", test_folder)
 
             sources.append(test_folder)
 
             break
 
-    logger.info("Collecting source files%s.", '')
+    log.info("Collecting source files%s.", '')
 
     source_files = []
     for source in sources:
         for root, dirs, files in os.walk(source, topdown=False):
             source_files += [os.path.join(root, f) for f in files if '.java' in f]
 
-    logger.info("Collected source files %s.", source_files)
+    log.info("Collected source files %s.", source_files)
 
     return source_files
 

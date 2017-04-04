@@ -1,13 +1,17 @@
 import os, sys
+import logging
 
 from subprocess             import call
 
-from core.utils             import constants, logger, misc
+from core.utils             import constants, misc
 from core.utils.progressbar import ProgressBar
 
 
-bar = ProgressBar()
+# get logging instance.
+log = logging.getLogger('SPLyse')
 
+# get progress bar instance.
+bar = ProgressBar()
 
 def adjust_test_cases(testinfos, testcases): # TODO: Use one dict instead!
     size = len(testinfos.items())
@@ -16,7 +20,7 @@ def adjust_test_cases(testinfos, testcases): # TODO: Use one dict instead!
     bar.setup(size)
 
     # print skeleton.
-    bar.bar()
+    bar.skeleton()
 
     for to_be_tested, infos in testinfos.items():
 
