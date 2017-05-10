@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 import os
+import time
 
 import logging
 
 from argparse    import ArgumentParser
 from core        import optimiser, parser, runner, solver
-from core.utils  import constants, logger, misc
-
+from core.utils  import constants, logger, misc, report
 
 # setup logging mechanism.
 logger.setup(constants.log_file_path)
-
 
 def main():
     # creating console interface
@@ -24,6 +23,9 @@ def main():
 
     # adding optional argument for providing method.
     command_line.add_argument("-m", "--method", help="variant method")
+
+    # adding optional argument for providing method.
+    command_line.add_argument("-s", "--source", help="base variant")
 
     # adding optional argument for parsing test cases.
     command_line.add_argument("-t", "--test-sources", action="store_true", help="include test source folder.")
@@ -39,7 +41,7 @@ def main():
     group = command_line.add_mutually_exclusive_group()
     group.add_argument("-a", "--analyse-programs", action="store_true", help="analyse individual program execution paths.")
     group.add_argument("-c", "--compare-programs", action="store_true", help="analyse individual program execution paths and compare them pairwise.")
-    group.add_argument("-e", "--explore-programs", action="store_true", help="analyse individual program execution paths, compare them pairwise, and explore test trajectories.")
+    # group.add_argument("-e", "--explore-programs", action="store_true", help="analyse individual program execution paths, compare them pairwise, and explore test trajectories.")
 
     # populating parser.
     options = command_line.parse_args()
@@ -52,6 +54,11 @@ def main():
         print '> ERROR: NO METHOD SPECIFIED.'
         return
 
+
+    # ----------------------
+    # STEP 1: SEARCH SOURCES
+    # ----------------------
+
     print 'SEARCHING SOURCES.'
 
     # look up variants' sources.
@@ -61,6 +68,11 @@ def main():
     if not sources.items():
         print '> ERROR: CANNOT FIND SOURCES.'
         return
+
+
+    # -------------------------
+    # STEP 2: PREPARE WORKSPACE
+    # -------------------------
 
     print 'PREPARING WORKSPACE.'
 
@@ -74,27 +86,84 @@ def main():
         # remove all files and folders in the solver subdirectory.
         misc.clean_workspace(constants.workspace)
 
+
+    # ----------------------------------
+    # STEP 3: GENERATE TERMINATED STATES
+    # ----------------------------------
+
     if not options.skip_translation:
+
+        # ----------------------------
+        # STEP 3.A: PARSE SOURCE FILES
+        # ----------------------------
+
         print 'PARSING SOURCE FILES.\t\t',
+
+        # start measuring overall translation time.
+        start_time = time.time()
 
         # translate JAVA source files to BOOGIE source files
         parser.translate_source_files(sources)
 
+        # store overall translation time.
+        report.store_time('overall_translation_time', time.time() - start_time)
+
+
+        # -----------------------------------
+        # STEP 3.B: EXECUTE CODE SYMBOLICALLY
+        # -----------------------------------
+
         print 'EXECUTING CODE SYMBOLICALLY.\t',
 
+        # start measuring overall execution time.
+        start_time = time.time()
+
         # generate terminated states of BOOGIE files using SYMBOOGLIX
-        runner.generate_terminated_states(options.method)
+        execution_times = \
+            runner.generate_terminated_states(options.method)
+
+        # store overall execution time.
+        report.store_time('overall_execution_time', time.time() - start_time)
+
+        # store each variant's execution time.
+        report.store('execution_times', execution_times)
+
     else:
         # TODO: Check if all required variants are translated.
         s = 'undefined'
 
+
+    # ---------------------------------
+    # STEP 4: ANALYSE TERMINATED STATES
+    # ---------------------------------
+
     print 'ANALYSING TERMINATED STATES.\t',
 
     if options.analyse_programs:
+
+        # start measuring overall analysis time.
+        start_time = time.time()
+
         solver.analyse()
+
+        # store overall analysis time.
+        report.store_time('overall_analysis_time', time.time() - start_time)
+
     elif options.compare_programs:
-        solver.compare()
+
+        # start measuring overall comparison time.
+        start_time = time.time()
+
+        solver.compare(options.source)
+
+        # store overall comparison time.
+        report.store_time('overall_comparison_time', time.time() - start_time)
+
     elif options.explore_programs:
+
+        # start measuring exploration comparison time.
+        start_time = time.time()
+
         infos = \
             solver.compare()
 
@@ -104,6 +173,15 @@ def main():
         print "ADJUSTING TEST CASES.\t\t",
 
         optimiser.adjust_test_cases(infos, cases)
+
+        # store overall exploration time.
+        report.store_time('overall_exploration_time', time.time() - start_time)
+
+    else:
+        print "ERROR!"
+
+    # save report.
+    report.dump()
 
 
 if __name__ == '__main__':

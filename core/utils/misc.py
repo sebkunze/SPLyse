@@ -13,7 +13,6 @@ def set_up_workspace(directory):
     if not os.path.exists(directory):
         os.makedirs(directory, 0755)
 
-
 def clean_workspace(directory):
     for source_folder in os.listdir(directory):
         # ignore MacOS' custom attributes of the workspace.

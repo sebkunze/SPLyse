@@ -13,7 +13,6 @@ class ProgressBar:
         self.step      = number / self.width if number >= self.width else self.width / number
         # self.width     = self.step * number
 
-    # TODO: Change name, e.g., print skeleton.
     def skeleton(self):
         print '[          ]',
         print '\b' * (self.width + 2),
@@ -22,6 +21,8 @@ class ProgressBar:
     def progress(self):
         self.counter += self.increment
         if self.counter % self.step == 0:
+            print '\b.',
+            sys.stdout.flush()
             for _ in range(self.increment):
                 print '\b.',
                 sys.stdout.flush()

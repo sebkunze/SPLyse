@@ -1,5 +1,6 @@
 import os
 import logging
+import time
 
 from subprocess             import check_output, call, CalledProcessError, STDOUT
 
@@ -22,7 +23,9 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
     # print skeleton.
     bar.skeleton()
 
-    # try:
+    # dict for each variant's execution time.
+    execution_times = {}
+
     # browse all translated source files of the software product line variant.
     for folder in os.listdir(constants.workspace):
         # ignore MacOS' custom attributes of the analysed folder.
@@ -55,16 +58,19 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
                           , '--log-terminated-state-info 1'
                           , '--log-non-terminated-state-info 0']
 
+                    # start measuring variant's execution time.
+                    start_time = time.time()
+
                     try:
                         # call SYMBOOGLIX
                         check_output(misc.to_command(cmd), shell=True)
-
                     except CalledProcessError as e:
                          # FIXME: SYMBOOGLIX returns ERRORS_NO_TIMEOUT even if executed with a valid program.
-                        if e.returncode == 2:
-                            continue
-                        else:
+                        if e.returncode != 2:
                             raise SPLyseException("SYMBOOGLIX failed.")
+
+                    # store variant's execution time.
+                    execution_times[folder] = "{:.3f} seconds".format(time.time() - start_time)
 
 
         log.info('Done analyzing variant in folder %s', folder)
@@ -102,3 +108,5 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
 
     # print done.
     bar.done()
+
+    return execution_times

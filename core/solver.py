@@ -1,9 +1,11 @@
-import logging, os
+import os
+import time
+import logging
 
 from collections            import defaultdict
 from subprocess             import call, check_call, check_output, CalledProcessError, STDOUT
 
-from core.utils             import constants, misc
+from core.utils             import constants, misc, report
 from core.utils.progressbar import ProgressBar
 
 # get logging instance.
@@ -21,6 +23,9 @@ def analyse():
     # print skeleton.
     bar.skeleton()
 
+    # initialise report for analysis of variants.
+    analysis_report = {}
+
     # browse all terminated states of the software product line variant.
     for to_be_analysed_program_folder in os.listdir(constants.workspace):
         subdirectory \
@@ -32,7 +37,7 @@ def analyse():
         if not os.path.exists(subdirectory):
             os.makedirs(subdirectory, 0755)
 
-        # specifying output file.
+        # specify input files.
         input_files \
             = os.path.join( constants.workspace
                           , to_be_analysed_program_folder
@@ -40,8 +45,8 @@ def analyse():
                           , 'terminated_states'
                           , constants.constraint_solver_source_file)
 
-        # specifying output file.
-        output_files \
+        # specify output file.
+        output_file \
             = os.path.join( constants.workspace
                           , to_be_analysed_program_folder
                           , constants.constraint_solver_output_directory
@@ -51,19 +56,28 @@ def analyse():
         cmd = ['ConstraintSolver.py',
                 input_files,
                 '--analyse-states',
-                '--target ' + output_files]
+                '--target ' + output_file]
+
+        # start measuring analysis time
+        start_time = time.time()
 
         # call CONSTRAINT_SOLVER.
         call(misc.to_command(cmd), shell=True)
 
+        # store analysis time
+        analysis_report[to_be_analysed_program_folder] = "{:.3f} seconds".format(time.time() - start_time)
+
         # print progress.
         bar.progress()
+
+    # store analysis report.
+    report.store("analysis_time", analysis_report)
 
     # print done.
     bar.done()
 
 
-def compare():
+def compare(base):
     # declare dictionary storing results' file path.
     destinations = defaultdict(list)
 
@@ -81,12 +95,20 @@ def compare():
     # print skeleton.
     bar.skeleton()
 
+    # initialise report for comparison of variants.
+    comparison_report = {}
+
     try:
         # browse all terminated states of the software product line variant.
         for to_be_tested_program_folder in os.listdir(constants.workspace):
             if to_be_tested_program_folder == ".DS_Store":
                 continue
 
+            # skip comparison if variant is specified to be already tested.
+            if base == to_be_tested_program_folder:
+                continue
+
+            # set up path to subdirectory.
             subdirectory \
                 = os.path.join( constants.workspace
                               , to_be_tested_program_folder
@@ -96,8 +118,8 @@ def compare():
             if not os.path.exists(subdirectory):
                 os.makedirs(subdirectory, 0755)
 
-            # specify terminated states of software product line variant A.
-            terminated_states_file_a \
+            # specify terminated states of the to be tested variant.
+            terminated_states_file_of_to_be_tested_variant \
                 = os.path.join( constants.workspace
                               , to_be_tested_program_folder
                               , constants.symbooglix_output_directory
@@ -106,11 +128,12 @@ def compare():
 
             # collect folders of already tested programs.
             already_tested_program_folders \
-                = [folder for folder in os.listdir(constants.workspace) if not folder == to_be_tested_program_folder]
+                = [base] if base is not None else [folder for folder in os.listdir(constants.workspace) if not folder == to_be_tested_program_folder]
 
             for already_tested_program_folder in already_tested_program_folders:
-                # specify terminated states of software product line variant B.
-                terminated_states_file_b \
+
+                # specify terminated states of already test variant.
+                terminated_states_of_already_tested_variant \
                     = os.path.join( constants.workspace
                                   , already_tested_program_folder
                                   , constants.symbooglix_output_directory
@@ -118,10 +141,10 @@ def compare():
                                   , constants.constraint_solver_source_file)
 
                 # specifying input files.
-                input_files = terminated_states_file_a + ' ' + terminated_states_file_b
+                input_files = terminated_states_file_of_to_be_tested_variant + ' ' + terminated_states_of_already_tested_variant
 
-                # specifying output files.
-                output_files \
+                # specifying output file.
+                output_file \
                     = os.path.join( constants.workspace
                                   , to_be_tested_program_folder
                                   , constants.constraint_solver_output_directory
@@ -131,23 +154,38 @@ def compare():
                 cmd = [ 'ConstraintSolver.py'
                       , input_files
                       , '--compare-states'
-                      , '--target ' + output_files]
+                      , '--target ' + output_file]
+
+                # start measuring comparison time
+                start_time = time.time()
 
                 # call CONSTRAINT_SOLVER.
-                # check_output(misc.to_command(cmd), shell=True, stderr=STDOUT)
                 call(misc.to_command(cmd), shell=True)
 
+                # store comparison time
+                comparison_report[str(already_tested_program_folder) + "," + str(to_be_tested_program_folder) + ")"] \
+                    = "{:.3f} seconds".format(time.time() - start_time)
+
                 # store result's file path.
-                destinations[to_be_tested_program_folder].append(output_files)
+                destinations[to_be_tested_program_folder].append(output_file)
 
             # print progress.
             bar.progress()
 
     except CalledProcessError as e:
+
+        # print ERROR message.
         bar.error()
-        print e.output
+
+        logging.error("ERROR: %s", e.output)
+
     else:
+
+        # print DONE message.
         bar.done()
+
+    # store analysis report.
+    report.store("comparison_time", comparison_report)
 
     return destinations
 
