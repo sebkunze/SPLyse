@@ -159,23 +159,23 @@ def main():
         # store overall comparison time.
         report.store_time('overall_comparison_time', time.time() - start_time)
 
-    elif options.explore_programs:
-
-        # start measuring exploration comparison time.
-        start_time = time.time()
-
-        infos = \
-            solver.compare()
-
-        cases =\
-            misc.look_up_test_files(options.directory, options.variants) # TODO: Rename to test sources!
-
-        print "ADJUSTING TEST CASES.\t\t",
-
-        optimiser.adjust_test_cases(infos, cases)
-
-        # store overall exploration time.
-        report.store_time('overall_exploration_time', time.time() - start_time)
+    # elif options.explore_programs:
+    #
+    #     # start measuring exploration comparison time.
+    #     start_time = time.time()
+    #
+    #     infos = \
+    #         solver.compare()
+    #
+    #     cases =\
+    #         misc.look_up_test_files(options.directory, options.variants) # TODO: Rename to test sources!
+    #
+    #     print "ADJUSTING TEST CASES.\t\t",
+    #
+    #     optimiser.adjust_test_cases(infos, cases)
+    #
+    #     # store overall exploration time.
+    #     report.store_time('overall_exploration_time', time.time() - start_time)
 
     else:
         print "ERROR!"

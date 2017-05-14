@@ -100,13 +100,7 @@ def compare(base):
 
     try:
         # browse all terminated states of the software product line variant.
-        for to_be_tested_program_folder in os.listdir(constants.workspace):
-            if to_be_tested_program_folder == ".DS_Store":
-                continue
-
-            # skip comparison if variant is specified to be already tested.
-            if base == to_be_tested_program_folder:
-                continue
+        for to_be_tested_program_folder in [folder for folder in os.listdir(constants.workspace) if not folder == base and not folder == ".DS_STORE"]:
 
             # set up path to subdirectory.
             subdirectory \
@@ -128,7 +122,7 @@ def compare(base):
 
             # collect folders of already tested programs.
             already_tested_program_folders \
-                = [base] if base is not None else [folder for folder in os.listdir(constants.workspace) if not folder == to_be_tested_program_folder]
+                = [base] if base is not None else [folder for folder in os.listdir(constants.workspace) if not folder == to_be_tested_program_folder and not folder == ".DS_STORE"]
 
             for already_tested_program_folder in already_tested_program_folders:
 
