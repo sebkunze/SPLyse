@@ -34,7 +34,7 @@ PARSER \
     = "Java2Boogie.py"
 
 RUNNER \
-    = 'mono ' + symbooglix_home_environment + '/Debug/sbx.exe '
+    = 'mono ' + symbooglix_home_environment + '/Release/sbx.exe '
 
 SOLVER \
     = "ConstraintSolver"

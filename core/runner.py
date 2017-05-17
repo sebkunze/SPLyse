@@ -47,8 +47,10 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
                     cmd = [ constants.RUNNER
                           , source
                           , '-e ' + entry_point
-                          , '--check-entry-requires 1'
-                          , '--check-entry-axioms 1'
+                          , '--check-entry-requires 0'
+                          , '--check-entry-axioms 0'
+                          , '--globaldde 0'
+                          , '--remove-trivial-assumes'
                           , '--esi-show-constraints 1'
                           , '--esi-show-vars 1'
                           , '--write-smt2 0'
@@ -66,7 +68,7 @@ def generate_terminated_states(entry_point): # TODO: Do some refactoring!
                         check_output(misc.to_command(cmd), shell=True)
                     except CalledProcessError as e:
                          # FIXME: SYMBOOGLIX returns ERRORS_NO_TIMEOUT even if executed with a valid program.
-                        if e.returncode != 2:
+                        if e.returncode != 1 and e.returncode != 2:
                             raise SPLyseException("SYMBOOGLIX failed.")
 
                     # store variant's execution time.
