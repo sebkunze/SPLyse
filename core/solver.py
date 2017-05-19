@@ -3,7 +3,7 @@ import time
 import logging
 
 from collections            import defaultdict
-from subprocess             import call, check_call, check_output, CalledProcessError, STDOUT
+from subprocess             import Popen, call, check_call, check_output, CalledProcessError, STDOUT, PIPE
 
 from core.utils             import constants, misc, report
 from core.utils.progressbar import ProgressBar
@@ -46,17 +46,23 @@ def analyse():
                           , constants.constraint_solver_source_file)
 
         # specify output file.
-        output_file \
+        output_directory \
             = os.path.join( constants.workspace
                           , to_be_analysed_program_folder
-                          , constants.constraint_solver_output_directory
-                          , constants.analysed_file_name)
+                          , constants.constraint_solver_output_directory)
+
+        # specify report file.
+        report_file \
+            = os.path.join( constants.workspace
+                          , to_be_analysed_program_folder
+                          , 'report.json')
 
         # build command for CONSTRAINT_SOLVER.
-        cmd = ['ConstraintSolver.py',
-                input_files,
-                '--analyse-states',
-                '--target ' + output_file]
+        cmd = [ 'ConstraintSolver.py'
+              , input_files
+              , '--analyse-states'
+              , '--report ' + report_file
+              , '--target ' + output_directory]
 
         # start measuring analysis time
         start_time = time.time()
@@ -134,8 +140,40 @@ def compare(base):
                                   , constants.symbooglix_terminated_states_directory
                                   , constants.constraint_solver_source_file)
 
-                # specifying input files.
-                input_files = terminated_states_file_of_to_be_tested_variant + ' ' + terminated_states_of_already_tested_variant
+                # specify input files.
+                input_files \
+                    = terminated_states_file_of_to_be_tested_variant + ' ' + terminated_states_of_already_tested_variant
+
+                # specify output file.
+                output_directory \
+                    = os.path.join( constants.workspace
+                                  , to_be_tested_program_folder
+                                  , constants.constraint_solver_output_directory)
+
+                # specify report file.
+                report_file \
+                    = os.path.join(constants.workspace
+                                   , to_be_tested_program_folder
+                                   , 'report.json')
+
+                # build command for CONSTRAINT_SOLVER.
+                cmd = [ 'ConstraintSolver.py'
+                      , input_files
+                      , '--compare-states'
+                      , '--report ' + report_file
+                      , '--target ' + output_directory]
+
+                # start measuring comparison time
+                start_time = time.time()
+
+                # call CONSTRAINT_SOLVER.
+                result = check_output(misc.to_command(cmd), shell=True)
+
+                print result
+
+                # store comparison time
+                comparison_report[str(already_tested_program_folder) + "," + str(to_be_tested_program_folder) + ")"] \
+                    = "{:.3f} seconds".format(time.time() - start_time)
 
                 # specifying output file.
                 output_file \
@@ -143,22 +181,6 @@ def compare(base):
                                   , to_be_tested_program_folder
                                   , constants.constraint_solver_output_directory
                                   , already_tested_program_folder + '.yml')
-
-                # build command for CONSTRAINT_SOLVER.
-                cmd = [ 'ConstraintSolver.py'
-                      , input_files
-                      , '--compare-states'
-                      , '--target ' + output_file]
-
-                # start measuring comparison time
-                start_time = time.time()
-
-                # call CONSTRAINT_SOLVER.
-                call(misc.to_command(cmd), shell=True)
-
-                # store comparison time
-                comparison_report[str(already_tested_program_folder) + "," + str(to_be_tested_program_folder) + ")"] \
-                    = "{:.3f} seconds".format(time.time() - start_time)
 
                 # store result's file path.
                 destinations[to_be_tested_program_folder].append(output_file)
