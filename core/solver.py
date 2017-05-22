@@ -23,9 +23,6 @@ def analyse():
     # print skeleton.
     bar.skeleton()
 
-    # initialise report for analysis of variants.
-    analysis_report = {}
-
     # browse all terminated states of the software product line variant.
     for to_be_analysed_program_folder in os.listdir(constants.workspace):
         subdirectory \
@@ -70,14 +67,8 @@ def analyse():
         # call CONSTRAINT_SOLVER.
         call(misc.to_command(cmd), shell=True)
 
-        # store analysis time
-        analysis_report[to_be_analysed_program_folder] = "{:.3f} seconds".format(time.time() - start_time)
-
         # print progress.
         bar.progress()
-
-    # store analysis report.
-    report.store("analysis_time", analysis_report)
 
     # print done.
     bar.done()
@@ -100,9 +91,6 @@ def compare(base):
 
     # print skeleton.
     bar.skeleton()
-
-    # initialise report for comparison of variants.
-    comparison_report = {}
 
     try:
         # browse all terminated states of the software product line variant.
@@ -169,10 +157,6 @@ def compare(base):
                 # call CONSTRAINT_SOLVER.
                 check_output(misc.to_command(cmd), shell=True)
 
-                # store comparison time
-                comparison_report[str(already_tested_program_folder) + "," + str(to_be_tested_program_folder) + ")"] \
-                    = "{:.3f} seconds".format(time.time() - start_time)
-
                 # specifying output file.
                 output_file \
                     = os.path.join( constants.workspace
@@ -197,9 +181,6 @@ def compare(base):
 
         # print DONE message.
         bar.done()
-
-    # store analysis report.
-    report.store("comparison_time", comparison_report)
 
     return destinations
 

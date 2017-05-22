@@ -146,36 +146,38 @@ def main():
         # store overall analysis time.
         report.store_time('overall_analysis_time', time.time() - start_time)
 
-    elif options.compare_programs:
+    elif options.compare_programs or options.explore_programs:
 
         # start measuring overall comparison time.
         start_time = time.time()
 
-        solver.compare(options.source)
+        infos = solver.compare(options.source)
 
         # store overall comparison time.
         report.store_time('overall_comparison_time', time.time() - start_time)
 
-    # elif options.explore_programs:
-    #
-    #     # start measuring exploration comparison time.
-    #     start_time = time.time()
-    #
-    #     infos = \
-    #         solver.compare()
-    #
-    #     cases =\
-    #         misc.look_up_test_files(options.directory, options.variants) # TODO: Rename to test sources!
-    #
-    #     print "ADJUSTING TEST CASES.\t\t",
-    #
-    #     optimiser.adjust_test_cases(infos, cases)
-    #
-    #     # store overall exploration time.
-    #     report.store_time('overall_exploration_time', time.time() - start_time)
-
     else:
+
         print "ERROR!"
+
+    # ----------------------------------
+    # STEP 4: ADJUST EXISTING TEST CASES
+    # ----------------------------------
+
+    if options.explore_programs:
+
+        cases =\
+            misc.look_up_test_files(options.directory, options.variants) # TODO: Rename to test sources!
+
+        print "ADJUSTING TEST CASES.\t\t",
+
+        # start measuring exploration comparison time.
+        start_time = time.time()
+
+        optimiser.adjust_test_cases(infos, cases)
+
+        # store overall exploration time.
+        report.store_time('overall_adjustment_time', time.time() - start_time)
 
     # save report.
     report.dump()
