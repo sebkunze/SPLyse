@@ -1,8 +1,5 @@
 #!/usr/bin/env python
-import os
 import time
-
-import logging
 
 from argparse    import ArgumentParser
 from core        import optimiser, parser, runner, solver
