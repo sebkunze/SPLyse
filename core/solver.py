@@ -167,9 +167,7 @@ def compare(base):
                 start_time = time.time()
 
                 # call CONSTRAINT_SOLVER.
-                result = check_output(misc.to_command(cmd), shell=True)
-
-                print result
+                check_output(misc.to_command(cmd), shell=True)
 
                 # store comparison time
                 comparison_report[str(already_tested_program_folder) + "," + str(to_be_tested_program_folder) + ")"] \
