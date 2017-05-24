@@ -61,9 +61,6 @@ def analyse():
               , '--report ' + report_file
               , '--target ' + output_directory]
 
-        # start measuring analysis time
-        start_time = time.time()
-
         # call CONSTRAINT_SOLVER.
         call(misc.to_command(cmd), shell=True)
 
@@ -150,9 +147,6 @@ def compare(base):
                       , '--compare-states'
                       , '--report ' + report_file
                       , '--target ' + output_directory]
-
-                # start measuring comparison time
-                start_time = time.time()
 
                 # call CONSTRAINT_SOLVER.
                 check_output(misc.to_command(cmd), shell=True)

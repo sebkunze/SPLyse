@@ -38,7 +38,7 @@ def main():
     group = command_line.add_mutually_exclusive_group()
     group.add_argument("-a", "--analyse-programs", action="store_true", help="analyse individual program execution paths.")
     group.add_argument("-c", "--compare-programs", action="store_true", help="analyse individual program execution paths and compare them pairwise.")
-    # group.add_argument("-e", "--explore-programs", action="store_true", help="analyse individual program execution paths, compare them pairwise, and explore test trajectories.")
+    group.add_argument("-e", "--explore-programs", action="store_true", help="analyse individual program execution paths, compare them pairwise, and explore test trajectories.")
 
     # populating parser.
     options = command_line.parse_args()
